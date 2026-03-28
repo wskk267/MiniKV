@@ -4,7 +4,6 @@
 # Compiled Object files
 *.slo
 *.lo
-*.o
 *.obj
 
 # Precompiled Headers
@@ -39,3 +38,17 @@
 
 # debug information files
 *.dwo
+
+# build
+build/
+
+# C++
+*.o
+*.out
+
+# data
+data/*.db
+data/*.log
+
+# editor
+.vscode/
