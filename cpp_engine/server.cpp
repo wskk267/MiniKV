@@ -2,8 +2,12 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <unordered_map>
+#include <sstream>
 
 using namespace std;
+
+unordered_map<string,string> kv;
 
 int main() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -26,10 +30,35 @@ int main() {
 
         char buffer[1024] = {0};
         read(client, buffer, 1024);
+        cout << "Received: " << buffer;
 
-        cout << "Received: " << buffer << endl;
+        string cmd(buffer);
+        stringstream ss(cmd);
+        string op, key, value, response;
+        ss >> op >> key >> value;
+        
+        if(op == "PUT"){
+            kv[key] = value;
+            response = "OK\n";
+        }
+        else if(op == "GET"){
+            if(kv.find(key) != kv.end()){
+                response = "VALUE "+kv[key]+"\n";
+            } else {
+                response = "NOT_FOUND\n";
+            }
+        }
+        else if(op == "DEL"){
+            if(kv.erase(key)){
+                response = "OK\n";
+            } else {
+                response = "NOT_FOUND\n";
+            }
+        }
+        else {
+            response = "ERROR\n";
+        }
 
-        string response = "OK\n";
         send(client, response.c_str(), response.size(), 0);
 
         close(client);
