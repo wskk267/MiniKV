@@ -52,3 +52,4 @@ data/*.log
 
 # editor
 .vscode/
+.venv/

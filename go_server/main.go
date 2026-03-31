@@ -1,15 +1,19 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"encoding/json"
 	"strings"
 )
 
 type KVRequest struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+func invalidKey(key string) bool {
+	return key == "" || strings.ContainsAny(key, " \t\n\r")
 }
 
 func kvHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,22 +25,22 @@ func kvHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid json", http.StatusBadRequest)
 			return
 		}
-		if req.Key == "" {
-			http.Error(w, "Key is required", http.StatusBadRequest)
+		if invalidKey(req.Key) {
+			http.Error(w, "Key is invalid (empty or contains whitespace)", http.StatusBadRequest)
 			return
 		}
 		cmd = fmt.Sprintf("PUT %s %s", req.Key, req.Value)
 	case http.MethodGet:
 		key := r.URL.Query().Get("key")
-		if key == "" {
-			http.Error(w, "Key query parameter is required", http.StatusBadRequest)
+		if invalidKey(key) {
+			http.Error(w, "Key query parameter is invalid (empty or contains whitespace)", http.StatusBadRequest)
 			return
 		}
 		cmd = fmt.Sprintf("GET %s", key)
 	case http.MethodDelete:
 		key := r.URL.Query().Get("key")
-		if key == "" {
-			http.Error(w, "Key query parameter is required", http.StatusBadRequest)
+		if invalidKey(key) {
+			http.Error(w, "Key query parameter is invalid (empty or contains whitespace)", http.StatusBadRequest)
 			return
 		}
 		cmd = fmt.Sprintf("DEL %s", key)
@@ -50,11 +54,7 @@ func kvHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	resp=strings.TrimSpace(resp)
-	if resp == "NOT_FOUND" {
-		http.Error(w, resp, http.StatusNotFound)
-		return
-	}
+	resp = strings.TrimSpace(resp)
 
 	fmt.Fprintln(w, resp)
 }
@@ -63,5 +63,7 @@ func main() {
 	http.HandleFunc("/kv", kvHandler)
 	port := 8080
 	fmt.Printf("Go API server is running on port %d\n", port)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)	
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
+		fmt.Printf("Go API server exited with error: %v\n", err)
+	}
 }
