@@ -104,14 +104,13 @@ cd /item/MiniKV
 典型压测命令：
 
 cd /item/MiniKV
-./benmark/minikv-bench -url http://127.0.0.1:8080/kv -workers 100 -requests 100000 -op mixed -keyspace 2000 -write-ratio 33 -delete-ratio 20
-
+./benmark/minikv-bench -url http://127.0.0.1:8080/kv -url http://127.0.0.1:8080/kv -workers 40  -op mixed -requests 400000
 典型结果（当前环境）：
 
-- QPS：约 24,000+
-- 平均延迟：约 3.5ms
-- P99 延迟：约 1.6ms - 1.9ms
-- 系统成功率：约 99.8%
+- QPS：约 38,000+
+- 平均延迟：约 884.7 µs
+- P99 延迟：约 1.1ms - 1.3ms
+- 系统成功率：约 99.9%
 
 说明：压测结果会随请求比例、超时参数、后台进程状态而波动，建议固定参数并多次取中位值。
 
